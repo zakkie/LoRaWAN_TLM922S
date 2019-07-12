@@ -30,6 +30,7 @@
 #define ADR_ON		true
 #define TX_UCNF		false
 #define TX_CNF		true
+#define MAX_RX_SIZE	242
 
 //
 // クラス定義
@@ -38,7 +39,7 @@ class LoRaWAN_TLM922S : public Stream {
 private:
     String _echoBack;               // エコーバックバッファヒープ
     String _terminal;               // ターミナルストアヒープ
-    uint8_t *_rxData = nullptr;     // Downlinkデータストアヒープ
+    uint8_t _rxData[MAX_RX_SIZE];     // Downlinkデータストアヒープ
     uint8_t _rxDataLen = 0;
     int32_t _value;
     uint8_t _current;

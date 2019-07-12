@@ -47,11 +47,7 @@ void LoRaWAN_TLM922S::putCommand (const uint8_t command) {
     uint8_t c;
     if (command >= CMD_TABLE_LEN) return;
     _terminal = "";
-    if (_rxData) {
-        free(_rxData);
-        _rxDataLen = 0;
-        _rxData = nullptr;
-    }
+    _rxDataLen = 0;
     addr = pgm_read_word_near(CMD_TABLE + command);
     if (!addr) return;
     while (addr >= 0x100) {
@@ -203,6 +199,7 @@ uint32_t LoRaWAN_TLM922S::parseDecimal (void) {
 void LoRaWAN_TLM922S::parseHexData (void) {
     uint16_t recv = 0;
     uint8_t x = 0;
+    size_t maxRxData = sizeof(_rxData) / sizeof(_rxData[0]);
     while (wait()) {
         if (available()) {
             uint8_t c = peek();
@@ -212,7 +209,7 @@ void LoRaWAN_TLM922S::parseHexData (void) {
                 if (c >= 42) c -= 32;
                 c &= 15;
                 if ((++recv) & 1)          x = c << 4;
-                else if (_rxDataLen < 242) _rxData[_rxDataLen++] = x | c;
+                else if (_rxDataLen < maxRxData) _rxData[_rxDataLen++] = x | c;
             }
             else break;
             read();
@@ -463,13 +460,9 @@ bool LoRaWAN_TLM922S::txResult (void) {
                         f = true;
                         break;
                     case PS_RX : {
-                        void *ptr = malloc(242);
-                        if (ptr != nullptr) {
-                            _rxDataLen = 0;
-                            _rxData = (uint8_t*) ptr;
-                            _rxPort = parseDecimal();
-                            parseHexData();
-                        }
+                        _rxDataLen = 0;
+                        _rxPort = parseDecimal();
+                        parseHexData();
                         break;
                     }
                 }
